@@ -19,11 +19,17 @@
 .Flxs\(0\) {
   flex-shrink: 0;
 }
-.Flxb\(100\%\) {
-  flex-basis: 100%;
+.Flxb\(50\%\) {
+  flex-basis: 50%;
 }
 .Ai\(c\) {
   align-items: center;
+}
+.Or\(2\) {
+  order: 2;
+}
+.Jc\(c\) {
+  justify-content: center;
 }
 .Flw\(w\) {
   flex-wrap: wrap;
@@ -40,39 +46,30 @@
 .H\(0\) {
   height: 0;
 }
+.H\(100\%\) {
+  height: 100%;
+}
 .H\(24px\) {
   height: 24px;
 }
 .H\(45px\) {
   height: 45px;
 }
-.My\(0\) {
-  margin-top: 0;
-  margin-bottom: 0;
+.My\(0\.5em\) {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
 }
 .Mend\(a\) {
   margin-right: auto;
 }
-.Mstart\(0\) {
-  margin-left: 0;
-}
 .Mstart\(1em\) {
   margin-left: 1em;
-}
-.Mstart\(a\) {
-  margin-left: auto;
-}
-.T\(0\) {
-  top: 0;
 }
 .P\(15px\) {
   padding: 15px;
 }
 .Pt\(75\%\) {
   padding-top: 75%;
-}
-.Pos\(a\) {
-  position: absolute;
 }
 .Pos\(r\) {
   position: relative;
@@ -95,20 +92,24 @@
 .Fill\(cc\) {
   fill: currentColor;
 }
+.StretchedBox {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
 @media (min-width: 576px) {
-  .Flxb\(50\%\)--sm {
-    flex-basis: 50%;
+  .D\(f\)--sm {
+    display: flex;
   }
 }
 @media (min-width: 768px) {
+  .D\(f\)--md {
+    display: flex;
+  }
   .Flxb\(100\%\)--md {
     flex-basis: 100%;
-  }
-  .Flxb\(50\%\)--md {
-    flex-basis: 50%;
-  }
-  .Or\(2\)--md {
-    order: 2;
   }
   .Flw\(w\)--md {
     flex-wrap: wrap;
@@ -122,20 +123,11 @@
   .H\(a\)--md {
     height: auto;
   }
-  .Mend\(a\)--md {
-    margin-right: auto;
-  }
   .Mstart\(a\)--md {
     margin-left: auto;
   }
-  .Mah\(500px\)--md {
-    max-height: 500px;
-  }
   .Pt\(0\)--md {
     padding-top: 0;
-  }
-  .Pos\(r\)--md {
-    position: relative;
   }
   .W\(60px\)--md {
     width: 60px;

@@ -1,17 +1,17 @@
 <h1 class="C(grey) Fw(400) Fz(RWD-large)">{{ title }}</h1>
 
-<section class="D(f) Flw(w) Bgc(white) Mah(500px)--md">
-    <div class="D(f) Pt(75%) Pt(0)--md Or(2)--md Pos(r) H(0) H(a)--md Flxg(1) Flxs(0) Flxb(100%) Flxb(50%)--md">
-        <img style="object-fit: cover" class="Flxg(1) W(100%) Pos(a) Pos(r)--md T(0)"  src="//via.placeholder.com/768x576" alt="">
+<section class="D(f)--md Flw(w) Bgc(white)">
+    <div class="Pos(r) H(0) Pt(75%) Pt(0)--md H(a)--md Or(2) Flxg(1) Flxs(0) Flxb(50%)">
+        <img style="object-fit: cover" class="StretchedBox W(100%) H(100%)"  src="//via.placeholder.com/768x576" alt="">
     </div>
-    <div class="Flxg(1) Flxs(0) Flxb(100%) Flxb(50%)--md D(f) Flw(w)">
+    <div class="Flxg(1) Flxs(0) Flxb(50%) D(f)--sm Flw(w)">
         {{#each items}}
-            <a class="D(f) Flw(w)--md Flxb(100%) Flxb(50%)--sm Flxg(1) Flxs(0) Td(n) P(15px) Ai(c) C(brand) pop" href="#">
-                <svg class="W(45px) H(45px) W(60px)--md H(60px)--md Fill(cc) Mstart(a)--md  Mstart(0) Mend(a)--md">
+            <a class="D(f) Flw(w)--md Flxb(50%) Flxg(1) Flxs(0) Td(n) P(15px) Jc(c) Ai(c) C(brand) pop" href="#">
+                <svg class="W(45px) H(45px) W(60px)--md H(60px)--md Fill(cc)">
                     <use href="#{{icon}}"/>
                 </svg>
-                <p class="C(#000000) Mstart(1em) Mend(a) Mstart(a)--md Flxb(100%)--md Ta(c) My(0) Fw(400) Fz(18px)">{{title}}</p>
-                <svg class="W(24px) H(24px) Fill(cc) Mstart(a) Mend(a)--md">
+                <p class="C(#000000) Mstart(1em) Mend(a) Mstart(a)--md Flxb(100%)--md Ta(c) Fw(400) Fz(18px) My(0.5em)">{{title}}</p>
+                <svg class="W(24px) H(24px) Fill(cc)">
                     <use href="#arrow"/>
                 </svg>
             </a>

@@ -433,17 +433,17 @@ function __default(obj) { return obj && (obj.__esModule ? obj["default"] : obj);
 module.exports = (Handlebars["default"] || Handlebars).template({"1":function(container,depth0,helpers,partials,data) {
     var helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=helpers.helperMissing, alias3="function", alias4=container.escapeExpression;
 
-  return "            <a class=\"D(f) Flw(w)--md Flxb(100%) Flxb(50%)--sm Flxg(1) Flxs(0) Td(n) P(15px) Ai(c) C(brand) pop\" href=\"#\">\n                <svg class=\"W(45px) H(45px) W(60px)--md H(60px)--md Fill(cc) Mstart(a)--md  Mstart(0) Mend(a)--md\">\n                    <use href=\"#"
+  return "            <a class=\"D(f) Flw(w)--md Flxb(50%) Flxg(1) Flxs(0) Td(n) P(15px) Jc(c) Ai(c) C(brand) pop\" href=\"#\">\n                <svg class=\"W(45px) H(45px) W(60px)--md H(60px)--md Fill(cc)\">\n                    <use href=\"#"
     + alias4(((helper = (helper = helpers.icon || (depth0 != null ? depth0.icon : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"icon","hash":{},"data":data}) : helper)))
-    + "\"/>\n                </svg>\n                <p class=\"C(#000000) Mstart(1em) Mend(a) Mstart(a)--md Flxb(100%)--md Ta(c) My(0) Fw(400) Fz(18px)\">"
+    + "\"/>\n                </svg>\n                <p class=\"C(#000000) Mstart(1em) Mend(a) Mstart(a)--md Flxb(100%)--md Ta(c) Fw(400) Fz(18px) My(0.5em)\">"
     + alias4(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"title","hash":{},"data":data}) : helper)))
-    + "</p>\n                <svg class=\"W(24px) H(24px) Fill(cc) Mstart(a) Mend(a)--md\">\n                    <use href=\"#arrow\"/>\n                </svg>\n            </a>\n";
+    + "</p>\n                <svg class=\"W(24px) H(24px) Fill(cc)\">\n                    <use href=\"#arrow\"/>\n                </svg>\n            </a>\n";
 },"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
     var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {});
 
   return "<h1 class=\"C(grey) Fw(400) Fz(RWD-large)\">"
     + container.escapeExpression(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : helpers.helperMissing),(typeof helper === "function" ? helper.call(alias1,{"name":"title","hash":{},"data":data}) : helper)))
-    + "</h1>\n\n<section class=\"D(f) Flw(w) Bgc(white) Mah(500px)--md\">\n    <div class=\"D(f) Pt(75%) Pt(0)--md Or(2)--md Pos(r) H(0) H(a)--md Flxg(1) Flxs(0) Flxb(100%) Flxb(50%)--md\">\n        <img style=\"object-fit: cover\" class=\"Flxg(1) W(100%) Pos(a) Pos(r)--md T(0)\"  src=\"//via.placeholder.com/768x576\" alt=\"\">\n    </div>\n    <div class=\"Flxg(1) Flxs(0) Flxb(100%) Flxb(50%)--md D(f) Flw(w)\">\n"
+    + "</h1>\n\n<section class=\"D(f)--md Flw(w) Bgc(white)\">\n    <div class=\"Pos(r) H(0) Pt(75%) Pt(0)--md H(a)--md Or(2) Flxg(1) Flxs(0) Flxb(50%)\">\n        <img style=\"object-fit: cover\" class=\"StretchedBox W(100%) H(100%)\"  src=\"//via.placeholder.com/768x576\" alt=\"\">\n    </div>\n    <div class=\"Flxg(1) Flxs(0) Flxb(50%) D(f)--sm Flw(w)\">\n"
     + ((stack1 = helpers.each.call(alias1,(depth0 != null ? depth0.items : depth0),{"name":"each","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
     + "    </div>\n</section>\n\n";
 },"useData":true});
