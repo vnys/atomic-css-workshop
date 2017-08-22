@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "webpack-dev-server --content-base build --port=9999",
+    "start": "webpack-dev-server --content-base docs --port=7777",
     "build": "webpack"
   },
   "dependencies": {
@@ -13,6 +13,7 @@
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-preset-env": "^1.6.0",
     "css-loader": "^0.28.5",
+    "extract-text-webpack-plugin": "^3.0.0",
     "file-loader": "^0.11.2",
     "handlebars": "^4.0.10",
     "handlebars-loader": "^1.5.0",

@@ -1,6 +1,9 @@
 .Bgc\(white\) {
   background-color: white;
 }
+.C\(\#000000\) {
+  color: #000000;
+}
 .C\(brand\) {
   color: #ce0303;
 }
@@ -19,9 +22,6 @@
 .Flxb\(100\%\) {
   flex-basis: 100%;
 }
-.Flxb\(50\%\)--xs {
-  flex-basis: 50%;
-}
 .Ai\(c\) {
   align-items: center;
 }
@@ -34,8 +34,8 @@
 .Fz\(18px\) {
   font-size: 18px;
 }
-.Fz\(40px\) {
-  font-size: 40px;
+.Fz\(RWD-large\) {
+  font-size: 28px;
 }
 .H\(0\) {
   height: 0;
@@ -92,8 +92,13 @@
 .W\(45px\) {
   width: 45px;
 }
-.Fill\(brand\) {
-  fill: #ce0303;
+.Fill\(cc\) {
+  fill: currentColor;
+}
+@media (min-width: 576px) {
+  .Flxb\(50\%\)--sm {
+    flex-basis: 50%;
+  }
 }
 @media (min-width: 768px) {
   .Flxb\(100\%\)--md {
@@ -107,6 +112,9 @@
   }
   .Flw\(w\)--md {
     flex-wrap: wrap;
+  }
+  .Fz\(RWD-large\) {
+    font-size: 40px;
   }
   .H\(60px\)--md {
     height: 60px;

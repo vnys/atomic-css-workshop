@@ -1,6 +1,7 @@
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 module.exports = {
     entry: './src/',
@@ -53,7 +54,10 @@ module.exports = {
             },
             {
                 test: /\.css$/,
-                loaders: [ 'style-loader', 'css-loader' ]
+                use: ExtractTextPlugin.extract({
+                    fallback: 'style-loader',
+                    use: 'css-loader'
+                })
             },
             {
                 test: /\.woff$/,
@@ -82,7 +86,9 @@ module.exports = {
             template: require('html-webpack-template'),
             links: [
                 'atomic.css'
-            ]
-        })
+            ],
+            title: 'Atomic CSS Workshop'
+        }),
+        new ExtractTextPlugin('styles.css')
     ]
 }

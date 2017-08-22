@@ -9,6 +9,10 @@ module.exports = {
         },
         custom: {
             brand: '#ce0303',
+            'Fz(RWD-large)': {
+                'default': '28px',
+                'md': '40px'
+            }
         },
         classNames: []
     }

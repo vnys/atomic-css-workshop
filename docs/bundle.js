@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 6);
+/******/ 	return __webpack_require__(__webpack_require__.s = 4);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -261,7 +261,7 @@ module.exports = exports['default'];
 
 // Create a simple path alias to allow browserify to resolve
 // the runtime on a supported path.
-module.exports = __webpack_require__(8)['default'];
+module.exports = __webpack_require__(6)['default'];
 
 
 /***/ }),
@@ -283,11 +283,11 @@ var _exception = __webpack_require__(1);
 
 var _exception2 = _interopRequireDefault(_exception);
 
-var _helpers = __webpack_require__(9);
+var _helpers = __webpack_require__(7);
 
-var _decorators = __webpack_require__(17);
+var _decorators = __webpack_require__(15);
 
-var _logger = __webpack_require__(19);
+var _logger = __webpack_require__(17);
 
 var _logger2 = _interopRequireDefault(_logger);
 
@@ -377,447 +377,6 @@ exports.logger = _logger2['default'];
 
 /***/ }),
 /* 4 */
-/***/ (function(module, exports) {
-
-/*
-	MIT License http://www.opensource.org/licenses/mit-license.php
-	Author Tobias Koppers @sokra
-*/
-// css base code, injected by the css-loader
-module.exports = function(useSourceMap) {
-	var list = [];
-
-	// return the list of modules as css string
-	list.toString = function toString() {
-		return this.map(function (item) {
-			var content = cssWithMappingToString(item, useSourceMap);
-			if(item[2]) {
-				return "@media " + item[2] + "{" + content + "}";
-			} else {
-				return content;
-			}
-		}).join("");
-	};
-
-	// import a list of modules into the list
-	list.i = function(modules, mediaQuery) {
-		if(typeof modules === "string")
-			modules = [[null, modules, ""]];
-		var alreadyImportedModules = {};
-		for(var i = 0; i < this.length; i++) {
-			var id = this[i][0];
-			if(typeof id === "number")
-				alreadyImportedModules[id] = true;
-		}
-		for(i = 0; i < modules.length; i++) {
-			var item = modules[i];
-			// skip already imported module
-			// this implementation is not 100% perfect for weird media query combinations
-			//  when a module is imported multiple times with different media queries.
-			//  I hope this will never occur (Hey this way we have smaller bundles)
-			if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
-				if(mediaQuery && !item[2]) {
-					item[2] = mediaQuery;
-				} else if(mediaQuery) {
-					item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
-				}
-				list.push(item);
-			}
-		}
-	};
-	return list;
-};
-
-function cssWithMappingToString(item, useSourceMap) {
-	var content = item[1] || '';
-	var cssMapping = item[3];
-	if (!cssMapping) {
-		return content;
-	}
-
-	if (useSourceMap && typeof btoa === 'function') {
-		var sourceMapping = toComment(cssMapping);
-		var sourceURLs = cssMapping.sources.map(function (source) {
-			return '/*# sourceURL=' + cssMapping.sourceRoot + source + ' */'
-		});
-
-		return [content].concat(sourceURLs).concat([sourceMapping]).join('\n');
-	}
-
-	return [content].join('\n');
-}
-
-// Adapted from convert-source-map (MIT)
-function toComment(sourceMap) {
-	// eslint-disable-next-line no-undef
-	var base64 = btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap))));
-	var data = 'sourceMappingURL=data:application/json;charset=utf-8;base64,' + base64;
-
-	return '/*# ' + data + ' */';
-}
-
-
-/***/ }),
-/* 5 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/*
-	MIT License http://www.opensource.org/licenses/mit-license.php
-	Author Tobias Koppers @sokra
-*/
-
-var stylesInDom = {};
-
-var	memoize = function (fn) {
-	var memo;
-
-	return function () {
-		if (typeof memo === "undefined") memo = fn.apply(this, arguments);
-		return memo;
-	};
-};
-
-var isOldIE = memoize(function () {
-	// Test for IE <= 9 as proposed by Browserhacks
-	// @see http://browserhacks.com/#hack-e71d8692f65334173fee715c222cb805
-	// Tests for existence of standard globals is to allow style-loader
-	// to operate correctly into non-standard environments
-	// @see https://github.com/webpack-contrib/style-loader/issues/177
-	return window && document && document.all && !window.atob;
-});
-
-var getElement = (function (fn) {
-	var memo = {};
-
-	return function(selector) {
-		if (typeof memo[selector] === "undefined") {
-			memo[selector] = fn.call(this, selector);
-		}
-
-		return memo[selector]
-	};
-})(function (target) {
-	return document.querySelector(target)
-});
-
-var singleton = null;
-var	singletonCounter = 0;
-var	stylesInsertedAtTop = [];
-
-var	fixUrls = __webpack_require__(27);
-
-module.exports = function(list, options) {
-	if (typeof DEBUG !== "undefined" && DEBUG) {
-		if (typeof document !== "object") throw new Error("The style-loader cannot be used in a non-browser environment");
-	}
-
-	options = options || {};
-
-	options.attrs = typeof options.attrs === "object" ? options.attrs : {};
-
-	// Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
-	// tags it will allow on a page
-	if (!options.singleton) options.singleton = isOldIE();
-
-	// By default, add <style> tags to the <head> element
-	if (!options.insertInto) options.insertInto = "head";
-
-	// By default, add <style> tags to the bottom of the target
-	if (!options.insertAt) options.insertAt = "bottom";
-
-	var styles = listToStyles(list, options);
-
-	addStylesToDom(styles, options);
-
-	return function update (newList) {
-		var mayRemove = [];
-
-		for (var i = 0; i < styles.length; i++) {
-			var item = styles[i];
-			var domStyle = stylesInDom[item.id];
-
-			domStyle.refs--;
-			mayRemove.push(domStyle);
-		}
-
-		if(newList) {
-			var newStyles = listToStyles(newList, options);
-			addStylesToDom(newStyles, options);
-		}
-
-		for (var i = 0; i < mayRemove.length; i++) {
-			var domStyle = mayRemove[i];
-
-			if(domStyle.refs === 0) {
-				for (var j = 0; j < domStyle.parts.length; j++) domStyle.parts[j]();
-
-				delete stylesInDom[domStyle.id];
-			}
-		}
-	};
-};
-
-function addStylesToDom (styles, options) {
-	for (var i = 0; i < styles.length; i++) {
-		var item = styles[i];
-		var domStyle = stylesInDom[item.id];
-
-		if(domStyle) {
-			domStyle.refs++;
-
-			for(var j = 0; j < domStyle.parts.length; j++) {
-				domStyle.parts[j](item.parts[j]);
-			}
-
-			for(; j < item.parts.length; j++) {
-				domStyle.parts.push(addStyle(item.parts[j], options));
-			}
-		} else {
-			var parts = [];
-
-			for(var j = 0; j < item.parts.length; j++) {
-				parts.push(addStyle(item.parts[j], options));
-			}
-
-			stylesInDom[item.id] = {id: item.id, refs: 1, parts: parts};
-		}
-	}
-}
-
-function listToStyles (list, options) {
-	var styles = [];
-	var newStyles = {};
-
-	for (var i = 0; i < list.length; i++) {
-		var item = list[i];
-		var id = options.base ? item[0] + options.base : item[0];
-		var css = item[1];
-		var media = item[2];
-		var sourceMap = item[3];
-		var part = {css: css, media: media, sourceMap: sourceMap};
-
-		if(!newStyles[id]) styles.push(newStyles[id] = {id: id, parts: [part]});
-		else newStyles[id].parts.push(part);
-	}
-
-	return styles;
-}
-
-function insertStyleElement (options, style) {
-	var target = getElement(options.insertInto)
-
-	if (!target) {
-		throw new Error("Couldn't find a style target. This probably means that the value for the 'insertInto' parameter is invalid.");
-	}
-
-	var lastStyleElementInsertedAtTop = stylesInsertedAtTop[stylesInsertedAtTop.length - 1];
-
-	if (options.insertAt === "top") {
-		if (!lastStyleElementInsertedAtTop) {
-			target.insertBefore(style, target.firstChild);
-		} else if (lastStyleElementInsertedAtTop.nextSibling) {
-			target.insertBefore(style, lastStyleElementInsertedAtTop.nextSibling);
-		} else {
-			target.appendChild(style);
-		}
-		stylesInsertedAtTop.push(style);
-	} else if (options.insertAt === "bottom") {
-		target.appendChild(style);
-	} else {
-		throw new Error("Invalid value for parameter 'insertAt'. Must be 'top' or 'bottom'.");
-	}
-}
-
-function removeStyleElement (style) {
-	if (style.parentNode === null) return false;
-	style.parentNode.removeChild(style);
-
-	var idx = stylesInsertedAtTop.indexOf(style);
-	if(idx >= 0) {
-		stylesInsertedAtTop.splice(idx, 1);
-	}
-}
-
-function createStyleElement (options) {
-	var style = document.createElement("style");
-
-	options.attrs.type = "text/css";
-
-	addAttrs(style, options.attrs);
-	insertStyleElement(options, style);
-
-	return style;
-}
-
-function createLinkElement (options) {
-	var link = document.createElement("link");
-
-	options.attrs.type = "text/css";
-	options.attrs.rel = "stylesheet";
-
-	addAttrs(link, options.attrs);
-	insertStyleElement(options, link);
-
-	return link;
-}
-
-function addAttrs (el, attrs) {
-	Object.keys(attrs).forEach(function (key) {
-		el.setAttribute(key, attrs[key]);
-	});
-}
-
-function addStyle (obj, options) {
-	var style, update, remove, result;
-
-	// If a transform function was defined, run it on the css
-	if (options.transform && obj.css) {
-	    result = options.transform(obj.css);
-
-	    if (result) {
-	    	// If transform returns a value, use that instead of the original css.
-	    	// This allows running runtime transformations on the css.
-	    	obj.css = result;
-	    } else {
-	    	// If the transform function returns a falsy value, don't add this css.
-	    	// This allows conditional loading of css
-	    	return function() {
-	    		// noop
-	    	};
-	    }
-	}
-
-	if (options.singleton) {
-		var styleIndex = singletonCounter++;
-
-		style = singleton || (singleton = createStyleElement(options));
-
-		update = applyToSingletonTag.bind(null, style, styleIndex, false);
-		remove = applyToSingletonTag.bind(null, style, styleIndex, true);
-
-	} else if (
-		obj.sourceMap &&
-		typeof URL === "function" &&
-		typeof URL.createObjectURL === "function" &&
-		typeof URL.revokeObjectURL === "function" &&
-		typeof Blob === "function" &&
-		typeof btoa === "function"
-	) {
-		style = createLinkElement(options);
-		update = updateLink.bind(null, style, options);
-		remove = function () {
-			removeStyleElement(style);
-
-			if(style.href) URL.revokeObjectURL(style.href);
-		};
-	} else {
-		style = createStyleElement(options);
-		update = applyToTag.bind(null, style);
-		remove = function () {
-			removeStyleElement(style);
-		};
-	}
-
-	update(obj);
-
-	return function updateStyle (newObj) {
-		if (newObj) {
-			if (
-				newObj.css === obj.css &&
-				newObj.media === obj.media &&
-				newObj.sourceMap === obj.sourceMap
-			) {
-				return;
-			}
-
-			update(obj = newObj);
-		} else {
-			remove();
-		}
-	};
-}
-
-var replaceText = (function () {
-	var textStore = [];
-
-	return function (index, replacement) {
-		textStore[index] = replacement;
-
-		return textStore.filter(Boolean).join('\n');
-	};
-})();
-
-function applyToSingletonTag (style, index, remove, obj) {
-	var css = remove ? "" : obj.css;
-
-	if (style.styleSheet) {
-		style.styleSheet.cssText = replaceText(index, css);
-	} else {
-		var cssNode = document.createTextNode(css);
-		var childNodes = style.childNodes;
-
-		if (childNodes[index]) style.removeChild(childNodes[index]);
-
-		if (childNodes.length) {
-			style.insertBefore(cssNode, childNodes[index]);
-		} else {
-			style.appendChild(cssNode);
-		}
-	}
-}
-
-function applyToTag (style, obj) {
-	var css = obj.css;
-	var media = obj.media;
-
-	if(media) {
-		style.setAttribute("media", media)
-	}
-
-	if(style.styleSheet) {
-		style.styleSheet.cssText = css;
-	} else {
-		while(style.firstChild) {
-			style.removeChild(style.firstChild);
-		}
-
-		style.appendChild(document.createTextNode(css));
-	}
-}
-
-function updateLink (link, options, obj) {
-	var css = obj.css;
-	var sourceMap = obj.sourceMap;
-
-	/*
-		If convertToAbsoluteUrls isn't defined, but sourcemaps are enabled
-		and there is no publicPath defined then lets turn convertToAbsoluteUrls
-		on by default.  Otherwise default to the convertToAbsoluteUrls option
-		directly
-	*/
-	var autoFixUrls = options.convertToAbsoluteUrls === undefined && sourceMap;
-
-	if (options.convertToAbsoluteUrls || autoFixUrls) {
-		css = fixUrls(css);
-	}
-
-	if (sourceMap) {
-		// http://stackoverflow.com/a/26603875
-		css += "\n/*# sourceMappingURL=data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + " */";
-	}
-
-	var blob = new Blob([css], { type: "text/css" });
-
-	var oldSrc = link.href;
-
-	link.href = URL.createObjectURL(blob);
-
-	if(oldSrc) URL.revokeObjectURL(oldSrc);
-}
-
-
-/***/ }),
-/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -827,23 +386,23 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _content = __webpack_require__(7);
+var _content = __webpack_require__(5);
 
 var _content2 = _interopRequireDefault(_content);
 
-var _content3 = __webpack_require__(24);
+var _content3 = __webpack_require__(22);
 
 var _content4 = _interopRequireDefault(_content3);
 
-__webpack_require__(25);
+__webpack_require__(23);
 
-__webpack_require__(28);
+__webpack_require__(24);
 
-var _icons = __webpack_require__(31);
+var _icons = __webpack_require__(25);
 
 var _icons2 = _interopRequireDefault(_icons);
 
-var _icons3 = __webpack_require__(32);
+var _icons3 = __webpack_require__(26);
 
 var _icons4 = _interopRequireDefault(_icons3);
 
@@ -866,7 +425,7 @@ exports.default = function () {
 }();
 
 /***/ }),
-/* 7 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Handlebars = __webpack_require__(2);
@@ -874,15 +433,15 @@ function __default(obj) { return obj && (obj.__esModule ? obj["default"] : obj);
 module.exports = (Handlebars["default"] || Handlebars).template({"1":function(container,depth0,helpers,partials,data) {
     var helper, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=helpers.helperMissing, alias3="function", alias4=container.escapeExpression;
 
-  return "            <a class=\"D(f) Flw(w)--md Flxb(100%) Flxb(50%)--xs Flxg(1) Flxs(0) Td(n) P(15px) Ai(c)\" href=\"#\">\n                <svg class=\"W(45px) H(45px) W(60px)--md H(60px)--md Fill(brand) Mstart(a)--md  Mstart(0) Mend(a)--md\">\n                    <use href=\"#"
+  return "            <a class=\"D(f) Flw(w)--md Flxb(100%) Flxb(50%)--sm Flxg(1) Flxs(0) Td(n) P(15px) Ai(c) C(brand) pop\" href=\"#\">\n                <svg class=\"W(45px) H(45px) W(60px)--md H(60px)--md Fill(cc) Mstart(a)--md  Mstart(0) Mend(a)--md\">\n                    <use href=\"#"
     + alias4(((helper = (helper = helpers.icon || (depth0 != null ? depth0.icon : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"icon","hash":{},"data":data}) : helper)))
-    + "\"/>\n                </svg>\n                <p class=\"C(brand) Mstart(1em) Mend(a) Mstart(a)--md Flxb(100%)--md Ta(c) My(0) Fw(400) Fz(18px)\">"
+    + "\"/>\n                </svg>\n                <p class=\"C(#000000) Mstart(1em) Mend(a) Mstart(a)--md Flxb(100%)--md Ta(c) My(0) Fw(400) Fz(18px)\">"
     + alias4(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"title","hash":{},"data":data}) : helper)))
-    + "</p>\n                <svg class=\"W(24px) H(24px) Fill(brand) Mstart(a) Mend(a)--md\">\n                    <use href=\"#arrow\"/>\n                </svg>\n            </a>\n";
+    + "</p>\n                <svg class=\"W(24px) H(24px) Fill(cc) Mstart(a) Mend(a)--md\">\n                    <use href=\"#arrow\"/>\n                </svg>\n            </a>\n";
 },"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
     var stack1, helper, alias1=depth0 != null ? depth0 : (container.nullContext || {});
 
-  return "<h1 class=\"C(grey) Fw(400) Fz(40px)\">"
+  return "<h1 class=\"C(grey) Fw(400) Fz(RWD-large)\">"
     + container.escapeExpression(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : helpers.helperMissing),(typeof helper === "function" ? helper.call(alias1,{"name":"title","hash":{},"data":data}) : helper)))
     + "</h1>\n\n<section class=\"D(f) Flw(w) Bgc(white) Mah(500px)--md\">\n    <div class=\"D(f) Pt(75%) Pt(0)--md Or(2)--md Pos(r) H(0) H(a)--md Flxg(1) Flxs(0) Flxb(100%) Flxb(50%)--md\">\n        <img style=\"object-fit: cover\" class=\"Flxg(1) W(100%) Pos(a) Pos(r)--md T(0)\"  src=\"//via.placeholder.com/768x576\" alt=\"\">\n    </div>\n    <div class=\"Flxg(1) Flxs(0) Flxb(100%) Flxb(50%)--md D(f) Flw(w)\">\n"
     + ((stack1 = helpers.each.call(alias1,(depth0 != null ? depth0.items : depth0),{"name":"each","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
@@ -890,7 +449,7 @@ module.exports = (Handlebars["default"] || Handlebars).template({"1":function(co
 },"useData":true});
 
 /***/ }),
-/* 8 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -912,7 +471,7 @@ var base = _interopRequireWildcard(_handlebarsBase);
 // Each of these augment the Handlebars object. No need to setup here.
 // (This is done to easily share code between commonjs and browse envs)
 
-var _handlebarsSafeString = __webpack_require__(20);
+var _handlebarsSafeString = __webpack_require__(18);
 
 var _handlebarsSafeString2 = _interopRequireDefault(_handlebarsSafeString);
 
@@ -924,11 +483,11 @@ var _handlebarsUtils = __webpack_require__(0);
 
 var Utils = _interopRequireWildcard(_handlebarsUtils);
 
-var _handlebarsRuntime = __webpack_require__(21);
+var _handlebarsRuntime = __webpack_require__(19);
 
 var runtime = _interopRequireWildcard(_handlebarsRuntime);
 
-var _handlebarsNoConflict = __webpack_require__(22);
+var _handlebarsNoConflict = __webpack_require__(20);
 
 var _handlebarsNoConflict2 = _interopRequireDefault(_handlebarsNoConflict);
 
@@ -963,7 +522,7 @@ module.exports = exports['default'];
 
 
 /***/ }),
-/* 9 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -975,31 +534,31 @@ exports.registerDefaultHelpers = registerDefaultHelpers;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var _helpersBlockHelperMissing = __webpack_require__(10);
+var _helpersBlockHelperMissing = __webpack_require__(8);
 
 var _helpersBlockHelperMissing2 = _interopRequireDefault(_helpersBlockHelperMissing);
 
-var _helpersEach = __webpack_require__(11);
+var _helpersEach = __webpack_require__(9);
 
 var _helpersEach2 = _interopRequireDefault(_helpersEach);
 
-var _helpersHelperMissing = __webpack_require__(12);
+var _helpersHelperMissing = __webpack_require__(10);
 
 var _helpersHelperMissing2 = _interopRequireDefault(_helpersHelperMissing);
 
-var _helpersIf = __webpack_require__(13);
+var _helpersIf = __webpack_require__(11);
 
 var _helpersIf2 = _interopRequireDefault(_helpersIf);
 
-var _helpersLog = __webpack_require__(14);
+var _helpersLog = __webpack_require__(12);
 
 var _helpersLog2 = _interopRequireDefault(_helpersLog);
 
-var _helpersLookup = __webpack_require__(15);
+var _helpersLookup = __webpack_require__(13);
 
 var _helpersLookup2 = _interopRequireDefault(_helpersLookup);
 
-var _helpersWith = __webpack_require__(16);
+var _helpersWith = __webpack_require__(14);
 
 var _helpersWith2 = _interopRequireDefault(_helpersWith);
 
@@ -1016,7 +575,7 @@ function registerDefaultHelpers(instance) {
 
 
 /***/ }),
-/* 10 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1062,7 +621,7 @@ module.exports = exports['default'];
 
 
 /***/ }),
-/* 11 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1163,7 +722,7 @@ module.exports = exports['default'];
 
 
 /***/ }),
-/* 12 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1195,7 +754,7 @@ module.exports = exports['default'];
 
 
 /***/ }),
-/* 13 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1231,7 +790,7 @@ module.exports = exports['default'];
 
 
 /***/ }),
-/* 14 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1264,7 +823,7 @@ module.exports = exports['default'];
 
 
 /***/ }),
-/* 15 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1283,7 +842,7 @@ module.exports = exports['default'];
 
 
 /***/ }),
-/* 16 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1323,7 +882,7 @@ module.exports = exports['default'];
 
 
 /***/ }),
-/* 17 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1335,7 +894,7 @@ exports.registerDefaultDecorators = registerDefaultDecorators;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var _decoratorsInline = __webpack_require__(18);
+var _decoratorsInline = __webpack_require__(16);
 
 var _decoratorsInline2 = _interopRequireDefault(_decoratorsInline);
 
@@ -1346,7 +905,7 @@ function registerDefaultDecorators(instance) {
 
 
 /***/ }),
-/* 18 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1382,7 +941,7 @@ module.exports = exports['default'];
 
 
 /***/ }),
-/* 19 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1436,7 +995,7 @@ module.exports = exports['default'];
 
 
 /***/ }),
-/* 20 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1458,7 +1017,7 @@ module.exports = exports['default'];
 
 
 /***/ }),
-/* 21 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1772,7 +1331,7 @@ function executeDecorators(fn, prog, container, depths, data, blockParams) {
 
 
 /***/ }),
-/* 22 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1797,10 +1356,10 @@ exports['default'] = function (Handlebars) {
 module.exports = exports['default'];
 //# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi4uLy4uLy4uL2xpYi9oYW5kbGViYXJzL25vLWNvbmZsaWN0LmpzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7Ozs7O3FCQUNlLFVBQVMsVUFBVSxFQUFFOztBQUVsQyxNQUFJLElBQUksR0FBRyxPQUFPLE1BQU0sS0FBSyxXQUFXLEdBQUcsTUFBTSxHQUFHLE1BQU07TUFDdEQsV0FBVyxHQUFHLElBQUksQ0FBQyxVQUFVLENBQUM7O0FBRWxDLFlBQVUsQ0FBQyxVQUFVLEdBQUcsWUFBVztBQUNqQyxRQUFJLElBQUksQ0FBQyxVQUFVLEtBQUssVUFBVSxFQUFFO0FBQ2xDLFVBQUksQ0FBQyxVQUFVLEdBQUcsV0FBVyxDQUFDO0tBQy9CO0FBQ0QsV0FBTyxVQUFVLENBQUM7R0FDbkIsQ0FBQztDQUNIIiwiZmlsZSI6Im5vLWNvbmZsaWN0LmpzIiwic291cmNlc0NvbnRlbnQiOlsiLyogZ2xvYmFsIHdpbmRvdyAqL1xuZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24oSGFuZGxlYmFycykge1xuICAvKiBpc3RhbmJ1bCBpZ25vcmUgbmV4dCAqL1xuICBsZXQgcm9vdCA9IHR5cGVvZiBnbG9iYWwgIT09ICd1bmRlZmluZWQnID8gZ2xvYmFsIDogd2luZG93LFxuICAgICAgJEhhbmRsZWJhcnMgPSByb290LkhhbmRsZWJhcnM7XG4gIC8qIGlzdGFuYnVsIGlnbm9yZSBuZXh0ICovXG4gIEhhbmRsZWJhcnMubm9Db25mbGljdCA9IGZ1bmN0aW9uKCkge1xuICAgIGlmIChyb290LkhhbmRsZWJhcnMgPT09IEhhbmRsZWJhcnMpIHtcbiAgICAgIHJvb3QuSGFuZGxlYmFycyA9ICRIYW5kbGViYXJzO1xuICAgIH1cbiAgICByZXR1cm4gSGFuZGxlYmFycztcbiAgfTtcbn1cbiJdfQ==
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(23)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(21)))
 
 /***/ }),
-/* 23 */
+/* 21 */
 /***/ (function(module, exports) {
 
 var g;
@@ -1827,210 +1386,31 @@ module.exports = g;
 
 
 /***/ }),
-/* 24 */
+/* 22 */
 /***/ (function(module, exports) {
 
 module.exports = {"title":"Våre forsikringer","items":[{"title":"Bilforsikring","icon":"bilforsikring"},{"title":"Innboforsikring","icon":"innboforsikring"},{"title":"Reiseforsikring","icon":"reiseforsikring"},{"title":"Husforsikring","icon":"villa-hus"},{"title":"Gruppelivsforsikring","icon":"gruppeliv"},{"title":"Snøscooterforsikring","icon":"snoscooter"}]}
 
 /***/ }),
-/* 25 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(26);
-if(typeof content === 'string') content = [[module.i, content, '']];
-// Prepare cssTransformation
-var transform;
-
-var options = {}
-options.transform = transform
-// add the styles to the DOM
-var update = __webpack_require__(5)(content, options);
-if(content.locals) module.exports = content.locals;
-// Hot Module Replacement
-if(false) {
-	// When the styles change, update the <style> tags
-	if(!content.locals) {
-		module.hot.accept("!!../css-loader/index.js!./normalize.css", function() {
-			var newContent = require("!!../css-loader/index.js!./normalize.css");
-			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-			update(newContent);
-		});
-	}
-	// When the module is disposed, remove the <style> tags
-	module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 26 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(4)(undefined);
-// imports
-
-
-// module
-exports.push([module.i, "/*! normalize.css v7.0.0 | MIT License | github.com/necolas/normalize.css */\n\n/* Document\n   ========================================================================== */\n\n/**\n * 1. Correct the line height in all browsers.\n * 2. Prevent adjustments of font size after orientation changes in\n *    IE on Windows Phone and in iOS.\n */\n\nhtml {\n  line-height: 1.15; /* 1 */\n  -ms-text-size-adjust: 100%; /* 2 */\n  -webkit-text-size-adjust: 100%; /* 2 */\n}\n\n/* Sections\n   ========================================================================== */\n\n/**\n * Remove the margin in all browsers (opinionated).\n */\n\nbody {\n  margin: 0;\n}\n\n/**\n * Add the correct display in IE 9-.\n */\n\narticle,\naside,\nfooter,\nheader,\nnav,\nsection {\n  display: block;\n}\n\n/**\n * Correct the font size and margin on `h1` elements within `section` and\n * `article` contexts in Chrome, Firefox, and Safari.\n */\n\nh1 {\n  font-size: 2em;\n  margin: 0.67em 0;\n}\n\n/* Grouping content\n   ========================================================================== */\n\n/**\n * Add the correct display in IE 9-.\n * 1. Add the correct display in IE.\n */\n\nfigcaption,\nfigure,\nmain { /* 1 */\n  display: block;\n}\n\n/**\n * Add the correct margin in IE 8.\n */\n\nfigure {\n  margin: 1em 40px;\n}\n\n/**\n * 1. Add the correct box sizing in Firefox.\n * 2. Show the overflow in Edge and IE.\n */\n\nhr {\n  box-sizing: content-box; /* 1 */\n  height: 0; /* 1 */\n  overflow: visible; /* 2 */\n}\n\n/**\n * 1. Correct the inheritance and scaling of font size in all browsers.\n * 2. Correct the odd `em` font sizing in all browsers.\n */\n\npre {\n  font-family: monospace, monospace; /* 1 */\n  font-size: 1em; /* 2 */\n}\n\n/* Text-level semantics\n   ========================================================================== */\n\n/**\n * 1. Remove the gray background on active links in IE 10.\n * 2. Remove gaps in links underline in iOS 8+ and Safari 8+.\n */\n\na {\n  background-color: transparent; /* 1 */\n  -webkit-text-decoration-skip: objects; /* 2 */\n}\n\n/**\n * 1. Remove the bottom border in Chrome 57- and Firefox 39-.\n * 2. Add the correct text decoration in Chrome, Edge, IE, Opera, and Safari.\n */\n\nabbr[title] {\n  border-bottom: none; /* 1 */\n  text-decoration: underline; /* 2 */\n  text-decoration: underline dotted; /* 2 */\n}\n\n/**\n * Prevent the duplicate application of `bolder` by the next rule in Safari 6.\n */\n\nb,\nstrong {\n  font-weight: inherit;\n}\n\n/**\n * Add the correct font weight in Chrome, Edge, and Safari.\n */\n\nb,\nstrong {\n  font-weight: bolder;\n}\n\n/**\n * 1. Correct the inheritance and scaling of font size in all browsers.\n * 2. Correct the odd `em` font sizing in all browsers.\n */\n\ncode,\nkbd,\nsamp {\n  font-family: monospace, monospace; /* 1 */\n  font-size: 1em; /* 2 */\n}\n\n/**\n * Add the correct font style in Android 4.3-.\n */\n\ndfn {\n  font-style: italic;\n}\n\n/**\n * Add the correct background and color in IE 9-.\n */\n\nmark {\n  background-color: #ff0;\n  color: #000;\n}\n\n/**\n * Add the correct font size in all browsers.\n */\n\nsmall {\n  font-size: 80%;\n}\n\n/**\n * Prevent `sub` and `sup` elements from affecting the line height in\n * all browsers.\n */\n\nsub,\nsup {\n  font-size: 75%;\n  line-height: 0;\n  position: relative;\n  vertical-align: baseline;\n}\n\nsub {\n  bottom: -0.25em;\n}\n\nsup {\n  top: -0.5em;\n}\n\n/* Embedded content\n   ========================================================================== */\n\n/**\n * Add the correct display in IE 9-.\n */\n\naudio,\nvideo {\n  display: inline-block;\n}\n\n/**\n * Add the correct display in iOS 4-7.\n */\n\naudio:not([controls]) {\n  display: none;\n  height: 0;\n}\n\n/**\n * Remove the border on images inside links in IE 10-.\n */\n\nimg {\n  border-style: none;\n}\n\n/**\n * Hide the overflow in IE.\n */\n\nsvg:not(:root) {\n  overflow: hidden;\n}\n\n/* Forms\n   ========================================================================== */\n\n/**\n * 1. Change the font styles in all browsers (opinionated).\n * 2. Remove the margin in Firefox and Safari.\n */\n\nbutton,\ninput,\noptgroup,\nselect,\ntextarea {\n  font-family: sans-serif; /* 1 */\n  font-size: 100%; /* 1 */\n  line-height: 1.15; /* 1 */\n  margin: 0; /* 2 */\n}\n\n/**\n * Show the overflow in IE.\n * 1. Show the overflow in Edge.\n */\n\nbutton,\ninput { /* 1 */\n  overflow: visible;\n}\n\n/**\n * Remove the inheritance of text transform in Edge, Firefox, and IE.\n * 1. Remove the inheritance of text transform in Firefox.\n */\n\nbutton,\nselect { /* 1 */\n  text-transform: none;\n}\n\n/**\n * 1. Prevent a WebKit bug where (2) destroys native `audio` and `video`\n *    controls in Android 4.\n * 2. Correct the inability to style clickable types in iOS and Safari.\n */\n\nbutton,\nhtml [type=\"button\"], /* 1 */\n[type=\"reset\"],\n[type=\"submit\"] {\n  -webkit-appearance: button; /* 2 */\n}\n\n/**\n * Remove the inner border and padding in Firefox.\n */\n\nbutton::-moz-focus-inner,\n[type=\"button\"]::-moz-focus-inner,\n[type=\"reset\"]::-moz-focus-inner,\n[type=\"submit\"]::-moz-focus-inner {\n  border-style: none;\n  padding: 0;\n}\n\n/**\n * Restore the focus styles unset by the previous rule.\n */\n\nbutton:-moz-focusring,\n[type=\"button\"]:-moz-focusring,\n[type=\"reset\"]:-moz-focusring,\n[type=\"submit\"]:-moz-focusring {\n  outline: 1px dotted ButtonText;\n}\n\n/**\n * Correct the padding in Firefox.\n */\n\nfieldset {\n  padding: 0.35em 0.75em 0.625em;\n}\n\n/**\n * 1. Correct the text wrapping in Edge and IE.\n * 2. Correct the color inheritance from `fieldset` elements in IE.\n * 3. Remove the padding so developers are not caught out when they zero out\n *    `fieldset` elements in all browsers.\n */\n\nlegend {\n  box-sizing: border-box; /* 1 */\n  color: inherit; /* 2 */\n  display: table; /* 1 */\n  max-width: 100%; /* 1 */\n  padding: 0; /* 3 */\n  white-space: normal; /* 1 */\n}\n\n/**\n * 1. Add the correct display in IE 9-.\n * 2. Add the correct vertical alignment in Chrome, Firefox, and Opera.\n */\n\nprogress {\n  display: inline-block; /* 1 */\n  vertical-align: baseline; /* 2 */\n}\n\n/**\n * Remove the default vertical scrollbar in IE.\n */\n\ntextarea {\n  overflow: auto;\n}\n\n/**\n * 1. Add the correct box sizing in IE 10-.\n * 2. Remove the padding in IE 10-.\n */\n\n[type=\"checkbox\"],\n[type=\"radio\"] {\n  box-sizing: border-box; /* 1 */\n  padding: 0; /* 2 */\n}\n\n/**\n * Correct the cursor style of increment and decrement buttons in Chrome.\n */\n\n[type=\"number\"]::-webkit-inner-spin-button,\n[type=\"number\"]::-webkit-outer-spin-button {\n  height: auto;\n}\n\n/**\n * 1. Correct the odd appearance in Chrome and Safari.\n * 2. Correct the outline style in Safari.\n */\n\n[type=\"search\"] {\n  -webkit-appearance: textfield; /* 1 */\n  outline-offset: -2px; /* 2 */\n}\n\n/**\n * Remove the inner padding and cancel buttons in Chrome and Safari on macOS.\n */\n\n[type=\"search\"]::-webkit-search-cancel-button,\n[type=\"search\"]::-webkit-search-decoration {\n  -webkit-appearance: none;\n}\n\n/**\n * 1. Correct the inability to style clickable types in iOS and Safari.\n * 2. Change font properties to `inherit` in Safari.\n */\n\n::-webkit-file-upload-button {\n  -webkit-appearance: button; /* 1 */\n  font: inherit; /* 2 */\n}\n\n/* Interactive\n   ========================================================================== */\n\n/*\n * Add the correct display in IE 9-.\n * 1. Add the correct display in Edge, IE, and Firefox.\n */\n\ndetails, /* 1 */\nmenu {\n  display: block;\n}\n\n/*\n * Add the correct display in all browsers.\n */\n\nsummary {\n  display: list-item;\n}\n\n/* Scripting\n   ========================================================================== */\n\n/**\n * Add the correct display in IE 9-.\n */\n\ncanvas {\n  display: inline-block;\n}\n\n/**\n * Add the correct display in IE.\n */\n\ntemplate {\n  display: none;\n}\n\n/* Hidden\n   ========================================================================== */\n\n/**\n * Add the correct display in IE 10-.\n */\n\n[hidden] {\n  display: none;\n}\n", ""]);
-
-// exports
-
-
-/***/ }),
-/* 27 */
+/* 23 */
 /***/ (function(module, exports) {
 
-
-/**
- * When source maps are enabled, `style-loader` uses a link element with a data-uri to
- * embed the css on the page. This breaks all relative urls because now they are relative to a
- * bundle instead of the current page.
- *
- * One solution is to only use full urls, but that may be impossible.
- *
- * Instead, this function "fixes" the relative urls to be absolute according to the current page location.
- *
- * A rudimentary test suite is located at `test/fixUrls.js` and can be run via the `npm test` command.
- *
- */
-
-module.exports = function (css) {
-  // get current location
-  var location = typeof window !== "undefined" && window.location;
-
-  if (!location) {
-    throw new Error("fixUrls requires window.location");
-  }
-
-	// blank or null?
-	if (!css || typeof css !== "string") {
-	  return css;
-  }
-
-  var baseUrl = location.protocol + "//" + location.host;
-  var currentDir = baseUrl + location.pathname.replace(/\/[^\/]*$/, "/");
-
-	// convert each url(...)
-	/*
-	This regular expression is just a way to recursively match brackets within
-	a string.
-
-	 /url\s*\(  = Match on the word "url" with any whitespace after it and then a parens
-	   (  = Start a capturing group
-	     (?:  = Start a non-capturing group
-	         [^)(]  = Match anything that isn't a parentheses
-	         |  = OR
-	         \(  = Match a start parentheses
-	             (?:  = Start another non-capturing groups
-	                 [^)(]+  = Match anything that isn't a parentheses
-	                 |  = OR
-	                 \(  = Match a start parentheses
-	                     [^)(]*  = Match anything that isn't a parentheses
-	                 \)  = Match a end parentheses
-	             )  = End Group
-              *\) = Match anything and then a close parens
-          )  = Close non-capturing group
-          *  = Match anything
-       )  = Close capturing group
-	 \)  = Match a close parens
-
-	 /gi  = Get all matches, not the first.  Be case insensitive.
-	 */
-	var fixedCss = css.replace(/url\s*\(((?:[^)(]|\((?:[^)(]+|\([^)(]*\))*\))*)\)/gi, function(fullMatch, origUrl) {
-		// strip quotes (if they exist)
-		var unquotedOrigUrl = origUrl
-			.trim()
-			.replace(/^"(.*)"$/, function(o, $1){ return $1; })
-			.replace(/^'(.*)'$/, function(o, $1){ return $1; });
-
-		// already a full url? no change
-		if (/^(#|data:|http:\/\/|https:\/\/|file:\/\/\/)/i.test(unquotedOrigUrl)) {
-		  return fullMatch;
-		}
-
-		// convert the url to a full url
-		var newUrl;
-
-		if (unquotedOrigUrl.indexOf("//") === 0) {
-		  	//TODO: should we add protocol?
-			newUrl = unquotedOrigUrl;
-		} else if (unquotedOrigUrl.indexOf("/") === 0) {
-			// path should be relative to the base url
-			newUrl = baseUrl + unquotedOrigUrl; // already starts with '/'
-		} else {
-			// path should be relative to current directory
-			newUrl = currentDir + unquotedOrigUrl.replace(/^\.\//, ""); // Strip leading './'
-		}
-
-		// send back the fixed url(...)
-		return "url(" + JSON.stringify(newUrl) + ")";
-	});
-
-	// send back the fixed css
-	return fixedCss;
-};
-
+// removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 28 */
-/***/ (function(module, exports, __webpack_require__) {
+/* 24 */
+/***/ (function(module, exports) {
 
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(29);
-if(typeof content === 'string') content = [[module.i, content, '']];
-// Prepare cssTransformation
-var transform;
-
-var options = {}
-options.transform = transform
-// add the styles to the DOM
-var update = __webpack_require__(5)(content, options);
-if(content.locals) module.exports = content.locals;
-// Hot Module Replacement
-if(false) {
-	// When the styles change, update the <style> tags
-	if(!content.locals) {
-		module.hot.accept("!!../../node_modules/css-loader/index.js!./styles.css", function() {
-			var newContent = require("!!../../node_modules/css-loader/index.js!./styles.css");
-			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-			update(newContent);
-		});
-	}
-	// When the module is disposed, remove the <style> tags
-	module.hot.dispose(function() { update(); });
-}
+// removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 29 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(4)(undefined);
-// imports
-
-
-// module
-exports.push([module.i, "@font-face {\n    font-family: \"27Sans\";\n    src: url(" + __webpack_require__(30) + ") format('woff');\n    font-weight: 400;\n    font-style: normal;\n}\n\nbody {\n    background-color: #efefef;\n    font-family: \"27Sans\", sans-serif;\n}\n\n.wrapper {\n    max-width: 960px;\n    margin: 0 auto;\n}\n\n* {\n    box-sizing: border-box;\n}\n", ""]);
-
-// exports
-
-
-/***/ }),
-/* 30 */
-/***/ (function(module, exports, __webpack_require__) {
-
-module.exports = __webpack_require__.p + "fonts/27_sans-regular-webfont.woff";
-
-/***/ }),
-/* 31 */
+/* 25 */
 /***/ (function(module, exports) {
 
 module.exports = {"icons":[{"title":"arrow","width":24,"height":24,"path":"M14.586 13H6v-2h8.586l-2.293-2.293 1.414-1.414L18.414 12l-4.707 4.707-1.414-1.414L14.586 13zM12 24C5.373 24 0 18.627 0 12S5.373 0 12 0s12 5.373 12 12-5.373 12-12 12zm0-2c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"},{"title":"bilforsikring","width":60,"height":60,"path":"M43.813 32.467c-1.153.007-2.036.367-2.863 1.192-.827.85-1.186 1.723-1.218 2.84v.096c.011 1.169.383 2.036 1.218 2.893.827.823 1.71 1.18 2.863 1.193 1.166-.013 2.05-.37 2.888-1.197.82-.843 1.176-1.704 1.186-2.889V36.5c-.007-1.125-.362-1.987-1.182-2.838-.842-.828-1.726-1.184-2.892-1.195zm-27.69 0c-1.153.007-2.035.367-2.862 1.192-.828.85-1.187 1.723-1.219 2.84v.096c.012 1.169.384 2.036 1.219 2.893.827.823 1.71 1.18 2.862 1.193 1.165-.013 2.05-.37 2.889-1.197.819-.843 1.175-1.704 1.186-2.889V36.5c-.008-1.125-.363-1.987-1.183-2.838-.842-.828-1.727-1.184-2.892-1.195zm24.154-6.002H31.16c-.655-.104-.99-.421-.964-.971v-4.198h7.418c.514 0 .934.258 1.272.761.784 1.17 1.804 2.77 2.175 3.333.455.692.122 1.057-.784 1.075zm-12.204-.89c.012.491-.275.786-.872.89h-9.537c-.758-.04-1.139-.352-.604-1.106.474-.669 2.025-2.498 3.017-3.581.357-.296.58-.482 1.365-.482h6.631v4.279zm26.605 3.12a707.662 707.662 0 0 0-8.725-2.629c-.563-.163-.963-.584-1.319-.994 0 0-2.879-3.369-4.458-5.262-.597-.696-1.026-.825-1.322-.809h-18.59c-.604 0-.949.23-1.383.724-1.609 1.826-4.512 5.39-4.874 5.787-.276.301-.423.58-.89.762 0 0-5.579 1.554-8.063 2.337-.87.283-1.054.739-1.054 1.13v4.632c0 1.134.573 1.711 1.697 1.711h4.261c.112-1.476.706-2.853 1.791-3.936a5.976 5.976 0 0 1 4.374-1.829 6.034 6.034 0 0 1 4.4 1.829 6.03 6.03 0 0 1 1.766 3.936h15.359c.112-1.476.705-2.853 1.792-3.936a5.972 5.972 0 0 1 4.373-1.829 6.03 6.03 0 0 1 4.4 1.829 6.037 6.037 0 0 1 1.766 3.936h4.302c1.121 0 1.684-.577 1.684-1.71 0 0 .035-2.811.035-4.465 0-.587-.463-.945-1.322-1.214z"},{"title":"innboforsikring","width":60,"height":60,"path":"M32.516 27.221h1.931V16.497h4.35L35.921 8.76h-4.783l-2.971 7.736h4.348V27.22zm11.965 3.827c0-1.074-.528-1.601-1.568-1.601H16.076c-1.07 0-1.59.527-1.59 1.601v7.791h29.932l.063-7.79zm1.9 5.46l.02 4.508H12.65v-4.509H9.808v8.529h2.185v1.544h5.612v-1.544h23.844v1.544h5.61v-1.544h2.185v-8.529H46.38z"},{"title":"reiseforsikring","width":60,"height":60,"path":"M23.082 55.058L26.473 57l9.944-21.764s10.633.022 11.833.022c3.64 0 7.259-2.296 7.248-4.347-.01-2.039-3.795-4.112-7.27-4.112H36.394L26.503 5l-3.394 1.942s3.74 20.555 3.227 20.631c-.505.09-11.157.69-11.581.6-.417-.089-5.361-6.43-5.361-6.43s-.54-1.41-1.859-.1c-1.32 1.308-.935 1.363-.935 1.363s1.49 3.67 1.826 4.358c.33.677-.006 1.02-.347 1.273-.34.245-4.063.645-4.063 1.165-.006.51-.016 2.04-.016 2.04h.038v.322c0 .51 3.723.92 4.063 1.164.337.256.676.6.342 1.276-.336.687-1.837 4.356-1.837 4.356s-.38.046.935 1.364c1.32 1.308 1.859-.099 1.859-.099s4.955-6.331 5.377-6.42c.424-.078 11.07.544 11.581.62.506.09-3.276 20.633-3.276 20.633"},{"title":"villa-hus","width":60,"height":60,"path":"M44.968258,49.9662247 L35.1939219,49.9662247 L35.1939219,34.5791479 L24.7244037,34.5791479 L24.7244037,49.9662247 L14.6391984,49.9662247 L14.6391984,28.5725974 L30.166831,13.0563612 L44.968258,27.8495574 L44.968258,49.9662247 Z M45.6653395,19.660591 L45.6653395,8.314181 L40.4976927,8.314181 L40.4976927,14.4942105 L30.0028491,4 L4,29.9952515 L9.31769977,29.9952515 L9.31769977,55.3390072 L50.690531,55.3390072 L50.690531,29.9952515 L56,29.9952515 L45.6653395,19.660591 Z"},{"title":"gruppeliv","width":60,"height":60,"path":"M40.175 26.821a6.529 6.529 0 0 1-.53 2.242 4.73 4.73 0 0 1-.483.846c-1.782 3.051-5.57 6.834-9.314 10.297-3.927-3.527-7.84-7.372-9.278-10.12a7.014 7.014 0 0 1-.557-1.047c-.313-.73-.505-1.474-.544-2.23-.062-.768.025-1.462.262-2.093.245-.68.556-1.274.963-1.777.426-.492.969-.87 1.639-1.133a4.808 4.808 0 0 1 1.975-.266c.663.077 1.32.266 1.975.568.62.327 1.183.768 1.715 1.334a6.64 6.64 0 0 1 1.292 1.967c.176.365.382.871.62 1.524.137-.653.287-1.159.45-1.524a6.985 6.985 0 0 1 1.25-1.942 6.116 6.116 0 0 1 1.764-1.334c.362-.164.73-.302 1.093-.39.286-.114.607-.18.92-.191a3.875 3.875 0 0 1 1.95.267 4.07 4.07 0 0 1 1.65 1.133c.344.402.62.819.807 1.288.038.148.075.3.125.463.212.657.305 1.35.256 2.118m15.418 6.089s-.583-2.585-1.239-5.446c-.669-2.873-1.393-5.987-1.737-7.249-.35-1.296-1.006-2.76-2.377-3.78-.2-.138-.405-.265-.618-.392-.025.028-.051.065-.076.09-1.45 1.474-3.18 2.23-5.257 2.23-2.069 0-3.832-.756-5.284-2.23-.025-.025-.042-.05-.067-.075h-3.276c-.02.025-.038.05-.063.075-1.45 1.474-3.182 2.23-5.258 2.23-2.069 0-3.832-.756-5.283-2.23-.024-.025-.043-.05-.068-.075h-3.277a.55.55 0 0 1-.061.075c-1.451 1.474-3.183 2.23-5.259 2.23-2.069 0-3.832-.756-5.282-2.23-.057-.05-.095-.115-.151-.166-.825.443-1.513 1.073-1.944 1.778-.644 1.022-.826 1.955-.995 2.636a12675.66 12675.66 0 0 0-2.956 12.503c-.301 1.26.468 2.533 1.718 2.836 1.245.304 2.502-.479 2.796-1.74 0-.012.42-1.777.943-3.994l.564 23.305C11.122 54.804 12.342 56 13.823 56h.07c.462-.011 4.469-.011 4.933 0h.067c1.483 0 2.778-.43 2.778-2.612v-9.576c0-.936.756-1.7 1.688-1.7.929 0 1.686.764 1.686 1.7v9.53c0 1.869 1.263 2.658 2.727 2.658h.068c.462-.011 4.47-.011 4.933 0h.068c1.484 0 2.745-.865 2.745-2.709l.023-.88v-8.599c0-.936.756-1.7 1.687-1.7.93 0 1.686.764 1.686 1.7V53.3c0 1.685 1.258 2.701 2.737 2.701h.07c.461-.011 4.47-.011 4.932 0h.07c1.481 0 2.7-1.196 2.737-2.709l.574-23.595c.539 2.354.964 4.259.97 4.259a2.33 2.33 0 0 0 2.257 1.827c.175 0 .35-.011.525-.062 1.244-.29 2.026-1.551 1.739-2.81m-11.78-18.662c1.314 0 2.408-.511 3.327-1.512.919-.997 1.369-2.188 1.369-3.611 0-1.425-.45-2.643-1.369-3.638C46.22 4.49 45.127 4 43.814 4c-1.313 0-2.426.491-3.346 1.487-.917.995-1.369 2.213-1.369 3.638 0 1.423.452 2.614 1.369 3.61.92 1.002 2.033 1.513 3.346 1.513m-13.45 0c1.316 0 2.409-.511 3.328-1.512.92-.997 1.369-2.188 1.369-3.611 0-1.425-.45-2.643-1.37-3.638C32.774 4.49 31.68 4 30.366 4c-1.306 0-2.419.491-3.337 1.487-.926.995-1.37 2.213-1.37 3.638 0 1.423.444 2.614 1.37 3.61.918 1.002 2.031 1.513 3.337 1.513m-13.44 0c1.306 0 2.407-.511 3.326-1.512.919-.997 1.369-2.188 1.369-3.611 0-1.425-.45-2.643-1.37-3.638C19.333 4.49 18.23 4 16.926 4c-1.314 0-2.426.491-3.345 1.487-.919.995-1.369 2.213-1.369 3.638 0 1.423.45 2.614 1.369 3.61.92 1.002 2.031 1.513 3.345 1.513"},{"title":"snoscooter","width":60,"height":60,"path":"M47.937 42.502c1.902-1.557 3.744-3.713 3.744-3.713s-1.045-3.655-3.683-5.689c-2.64-2.047-7.423-3.837-7.423-3.837L36.89 23.38l-.797.184.81 6.105-6.74-7.36c-.286-.482-1.097-2.11-1.577-2.459a4.183 4.183 0 0 0-5.886.97c-.504.674-2.486 3.996-2.467 10.661 0 .728.013 1.409.036 1.933h8.601c-.129-.515-.205-1.186-.205-1.933 0-.403.011-3.848.03-4.203l7.377 4.967-2.727 3.392h-.54v.017H8.279C6.114 37.32 4 40.479 4 43.544c0 .363.055.707.092 1.056h40.87c.851-.538 1.979-1.293 2.975-2.098M29.82 18.369c1.015 0 1.86-.37 2.577-1.093.712-.711 1.058-1.57 1.058-2.599 0-1.017-.346-1.887-1.058-2.61C31.68 11.355 30.835 11 29.82 11c-1.021 0-1.885.355-2.596 1.067-.711.723-1.064 1.593-1.064 2.61 0 1.03.353 1.888 1.064 2.599.71.722 1.575 1.093 2.596 1.093m25.79 25.79a1.19 1.19 0 0 0-1.685.084l-2.323 2.599H32.671c-.657 0-1.191.538-1.191 1.2 0 .662.534 1.201 1.19 1.201h19.462c.12 0 .242-.025.358-.06h.006c.037-.013.073-.024.103-.038.013 0 .024-.01.037-.01a.668.668 0 0 1 .073-.04c.013-.011.024-.024.043-.035.018-.014.036-.025.053-.037.02 0 .033-.012.044-.023.018-.015.035-.04.055-.05.011-.014.024-.025.037-.038.017-.014.035-.024.054-.049.007 0 .012-.011.019-.011l2.68-2.994a1.217 1.217 0 0 0-.085-1.7m-31.185 2.684H5.714c-.656 0-1.185.538-1.185 1.2 0 .662.529 1.201 1.185 1.201h18.71c.658 0 1.193-.539 1.193-1.202 0-.661-.535-1.2-1.193-1.2"}]}
 
 /***/ }),
-/* 32 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var Handlebars = __webpack_require__(2);

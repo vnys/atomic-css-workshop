@@ -18,3 +18,31 @@ body {
 * {
     box-sizing: border-box;
 }
+
+.pop {
+    position: relative;
+    transition: transform 0.15s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+.pop::after {
+    opacity: 0;
+    content: '\00a0';
+    top: 0;
+    left: 0;
+    position: absolute;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    background: white;
+    transition: opacity 0.15s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+.pop:hover {
+    transform: scale(1.02, 1.02);
+    z-index: 1;
+}
+
+.pop:hover::after {
+    opacity: 1;
+}
