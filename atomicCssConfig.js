@@ -7,13 +7,7 @@ module.exports = {
             lg: '@media (min-width: 992px)',
             xl: '@media (min-width: 1200px)'
         },
-        custom: {
-            brand: '#ce0303',
-            'Fz(RWD-large)': {
-                'default': '28px',
-                'md': '40px'
-            }
-        },
+        custom: {},
         classNames: []
     }
 }
