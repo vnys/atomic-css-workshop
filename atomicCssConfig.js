@@ -1,5 +1,5 @@
 module.exports = {
-    cssDest: './build/atomic.css',
+    cssDest: './docs/atomic.css',
     configs: {
         breakPoints: {
             sm: '@media (min-width: 576px)',
