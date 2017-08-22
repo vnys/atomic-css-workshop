@@ -1,0 +1,20 @@
+title: "Våre forsikringer"
+items:
+    -
+        title: "Bilforsikring"
+        icon: "bilforsikring"
+    -
+        title: "Innboforsikring"
+        icon: "innboforsikring"
+    -
+        title: "Reiseforsikring"
+        icon: "reiseforsikring"
+    -
+        title: "Husforsikring"
+        icon: "villa-hus"
+    -
+        title: "Gruppelivsforsikring"
+        icon: "gruppeliv"
+    -
+        title: "Snøscooterforsikring"
+        icon: "snoscooter"

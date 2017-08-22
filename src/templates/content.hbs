@@ -1,0 +1,21 @@
+<h1 class="C(grey) Fw(400) Fz(40px)">{{ title }}</h1>
+
+<section class="D(f) Flw(w) Bgc(white) Mah(500px)--md">
+    <div class="D(f) Pt(75%) Pt(0)--md Or(2)--md Pos(r) H(0) H(a)--md Flxg(1) Flxs(0) Flxb(100%) Flxb(50%)--md">
+        <img style="object-fit: cover" class="Flxg(1) W(100%) Pos(a) Pos(r)--md T(0)"  src="//via.placeholder.com/768x576" alt="">
+    </div>
+    <div class="Flxg(1) Flxs(0) Flxb(100%) Flxb(50%)--md D(f) Flw(w)">
+        {{#each items}}
+            <a class="D(f) Flw(w)--md Flxb(100%) Flxb(50%)--xs Flxg(1) Flxs(0) Td(n) P(15px) Ai(c)" href="#">
+                <svg class="W(45px) H(45px) W(60px)--md H(60px)--md Fill(brand) Mstart(a)--md  Mstart(0) Mend(a)--md">
+                    <use href="#{{icon}}"/>
+                </svg>
+                <p class="C(brand) Mstart(1em) Mend(a) Mstart(a)--md Flxb(100%)--md Ta(c) My(0) Fw(400) Fz(18px)">{{title}}</p>
+                <svg class="W(24px) H(24px) Fill(brand) Mstart(a) Mend(a)--md">
+                    <use href="#arrow"/>
+                </svg>
+            </a>
+        {{/each}}
+    </div>
+</section>
+

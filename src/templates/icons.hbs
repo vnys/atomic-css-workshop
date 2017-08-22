@@ -1,0 +1,10 @@
+<div hidden>
+    <svg>
+        {{#each icons}}
+            <symbol id="{{title}}" viewBox="0 0 {{width}} {{height}}">
+                <title>{{ title }}</title>
+                <path d="{{path}}"></path>
+            </symbol>
+        {{/each}}
+    </svg>
+</div>
