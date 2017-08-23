@@ -6,7 +6,6 @@ import 'css/styles.css';
 import iconData from 'data/icons.yaml';
 import iconTemplate from 'templates/icons.hbs';
 
-// import data from './index.json';
 
 export default (() => {
 
